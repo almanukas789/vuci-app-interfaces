@@ -1,0 +1,12 @@
+{
+    "task1":{
+        "title": "Task 1",
+        "index": 100
+    },
+    "task1/task1": {
+        "title": "Task 1",
+        "view": "vuci-app-task1",
+        "files": ["/etc/config/task1"],
+        "index": 10
+    }
+}
