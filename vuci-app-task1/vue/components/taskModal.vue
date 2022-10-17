@@ -1,8 +1,8 @@
 <template>
   <div>
-    <a-modal v-model="modalVisability" :title="'Interface: ' + interfaceName" :width="450" @cancel='onSubmit()'>
+    <a-modal v-model="modalVisability" :title='interfaceTitle' :width="450" @cancel='closeInterface()'>
       <template>
-        <vuci-form uci-config="task1" @applied="onSubmit()">
+        <vuci-form uci-config="task1" @applied="closeInterface()">
           <vuci-named-section
             v-slot="{ s }"
             :name="sname"
@@ -85,9 +85,8 @@ export default {
     }
   },
   methods: {
-    onSubmit () {
-      this.modalVisability = false
-      this.$emit('onSubmit', this.modalVisability)
+    closeInterface () {
+      this.$emit('closeInterface')
     },
     handleProtocolChange (self) {
       if (self.model === 'dhcp') {
@@ -100,6 +99,11 @@ export default {
       } else {
         this.$uci.reset()
       }
+    }
+  },
+  computed: {
+    interfaceTitle: function () {
+      return 'Interface name: ' + this.interfaceName
     }
   }
 }

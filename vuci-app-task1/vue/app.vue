@@ -32,12 +32,12 @@
           <div style="display: flex">
             <label style="margin-right: 5px; margin-left: 25%; padding-top: 5px">Interface name: </label>
             <a-input
-              @pressEnter="validation()"
+              @pressEnter="handleInterfaceAdd()"
               v-model="interfaceName"
               style="margin-right: 100px; width: 200px"
               required
             ></a-input>
-            <a-button @click="validation()" type="primary" v-text="'Create'"> </a-button>
+            <a-button @click="handleInterfaceAdd()" type="primary" v-text="'Create'"> </a-button>
           </div>
         </div>
       </template>
@@ -47,7 +47,7 @@
       :isVisible='isVisible'
       :sname="sname"
       :interfaceName='interfaceName'
-      @onSubmit='onSubmit'
+      @closeInterface='closeInterface'
     >
     </taskModal>
   </div>
@@ -74,37 +74,42 @@ export default {
     }
   },
   methods: {
-    validation () {
-      if (this.interfaceName.length <= 0) {
-        this.$message.error('Please enter interface name!')
-      } else if (this.interfaceName.length >= 20) {
-        this.$message.error('Interface name is too long (Max = 20char)')
-      } else {
-        this.checkIfExistInConfig(this.interfaceName)
-        if (this.availability === true) {
-          this.handleAdd()
-        } else {
-          this.$message.error('Already exists!')
-          this.availability = true
-        }
+    handleInterfaceAdd () {
+      if (!this.validation(this.interfaceName)) {
+        return
       }
+      this.createInterface()
     },
-    checkIfExistInConfig (name) {
+    validation (intName) {
+      const nameLen = intName.length
+      let valid = false
+      if (nameLen <= 0) {
+        this.$message.error('Please enter interface name!')
+      } else if (nameLen >= 20) {
+        this.$message.error('Interface name is too long (Max = 20char)')
+      } else if (this.checkInterfaceExists(intName) === false) {
+        this.$message.error('Already exists!')
+      } else {
+        valid = true
+      }
+      return valid
+    },
+    checkInterfaceExists (name) {
       this.$uci.load('task1')
       const names = this.$uci.sections('task1')
       for (let i = 0; i < names.length; i++) {
         if (name === names[i].name) {
-          this.availability = false
+          return false
         }
       }
     },
-    onSubmit (item) {
-      this.isVisible = item
+    closeInterface (item) {
+      this.isVisible = false
       this.refreshModal()
       this.refreshTable()
       this.interfaceName = ''
     },
-    handleAdd () {
+    createInterface () {
       this.sname = this.$uci.add('task1', 'interface')
       this.$uci.set('task1', this.sname, 'name', this.interfaceName)
       this.$uci.set('task1', this.sname, 'protocol', 'static')
@@ -130,7 +135,7 @@ export default {
       this.$uci.del('task1', s['.name'])
       this.$uci.save()
       this.$uci.apply('task1')
-      this.checkIfExistInConfig(s.name)
+      this.checkInterfaceExists(s.name)
       if (this.availability === true) {
         this.$message.loading({ content: 'Deleting Interface!', key })
         setTimeout(() => {
